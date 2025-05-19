@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cecilia.programmer.dao.admin.ExamPaperAnswerDao">
+    <!--试卷答题信息插入操作-->
+    <insert id="add" parameterType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
+        insert into examPaperAnswer(id,examPaperId,examId,studentId,questionId,answer,isCorrect) values(null,#{examPaperId},#{examId},#{studentId},#{questionId},#{answer},#{isCorrect}) 
+    </insert>
+    <!--试卷答题信息更新操作-->
+    <update id="edit" parameterType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
+        update examPaperAnswer set examPaperId=#{examPaperId}, studentId=#{studentId} where id = #{id} 
+    </update>
+    <!--试卷答题信息搜索，查询-->
+    <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
+        select * from examPaperAnswer where 1 = 1 
+            <if test="examId != null">
+                and examId = #{examId} 
+            </if>
+            <if test="studentId != null">
+                and studentId = #{studentId} 
+            </if>
+            <if test="questionId != null">
+                and questionId = #{questionId} 
+            </if>
+    </select>
+    <!-- 模糊搜索总条数 -->
+    <select id="getTotal" parameterType="Map" resultType="Integer">
+        select count(*) from examPaperAnswer where 1 = 1 
+            <if test="examId != null">
+                and examId = #{examId} 
+            </if>
+            <if test="studentId != null">
+                and studentId = #{studentId} 
+            </if>
+            <if test="questionId != null">
+                and questionId = #{questionId} 
+            </if>
+    </select>
+    <!--删除试卷答题信息讯息-->
+    <delete id="delete" parameterType="Long">
+        delete from examPaperAnswer where id = ${value} 
+    </delete>
+</mapper>

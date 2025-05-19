@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cecilia.programmer.dao.admin.StudentDao">
+    <!--考生插入操作-->
+    <insert id="add" parameterType="com.cecilia.programmer.entity.admin.Student">
+        insert into student(id,subjectId,name,password,trueName,tel,createTime) values(null,#{subjectId},#{name},#{password},#{trueName},#{tel},#{createTime}) 
+    </insert>
+    <!--考生更新操作-->
+    <update id="edit" parameterType="com.cecilia.programmer.entity.admin.Student">
+        update student set name=#{name}, subjectId=#{subjectId}, password=#{password}, trueName=#{trueName}, tel=#{tel} where id = #{id} 
+    </update>
+    <!--考生按登录名查询-->
+    <select id="findByName" parameterType="String" resultType="com.cecilia.programmer.entity.admin.Student">
+        select * from student where name = #{value} 
+    </select>
+    <!--考生搜索，查询-->
+    <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.Student">
+        select * from student where 1 = 1 
+            <if test="name != null">
+                and name like '%${name}%' 
+            </if>
+            <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
+            <if test="offset != null and pageSize != null">
+            	limit #{offset}, #{pageSize} 
+            </if>
+    </select>
+    <!-- 模糊搜索总条数 -->
+    <select id="getTotal" parameterType="Map" resultType="Integer">
+        select count(*) from student where 1 = 1 
+            <if test="name != null">
+                and name like '%${name}%' 
+            </if>
+            <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
+    </select>
+    <!--删除考生讯息-->
+    <delete id="delete" parameterType="Long">
+        delete from student where id = ${value} 
+    </delete>
+</mapper>
