@@ -44,7 +44,6 @@
 	</bean>
 	
 	<!-- 后台访问拦截器 -->
-	
 	<mvc:interceptors>
 		<mvc:interceptor>
 			<mvc:mapping path="/admin/**"/>
@@ -53,6 +52,13 @@
 			<mvc:exclude-mapping path="/system/get_cpacha"/>
 			<mvc:exclude-mapping path="/resources/**"/>
 			<bean class="com.cecilia.programmer.interceptor.admin.LoginInterceptor"></bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/home/user/**"/>
+			<mvc:mapping path="/home/exam/**"/>
+			<mvc:exclude-mapping path="/home/user/menu.html"/>
+			<mvc:exclude-mapping path="/home/user/head.html"/>
+			<bean class="com.cecilia.programmer.interceptor.home.LoginInterceptor"></bean>
 		</mvc:interceptor>
 	</mvc:interceptors>
 </beans>

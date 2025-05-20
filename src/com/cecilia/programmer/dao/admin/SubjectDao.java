@@ -18,4 +18,5 @@ public interface SubjectDao {
 	public List<Subject> findList(Map<String, Object> queryMap);
 	public int delete(Long id);
 	public Integer getTotal(Map<String, Object> queryMap);
+	public Subject findById(Long id);
 }

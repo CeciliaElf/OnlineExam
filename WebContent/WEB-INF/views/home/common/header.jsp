@@ -6,7 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="copyright" content="All Rights Reserved, Copyright (C) 2013, Wuyeguo, Ltd." />
+<meta name="copyright" content="All Rights Reserved, Copyright (C) 2025, Cecilia, Ltd." />
 <title>${ title }</title>
 <link rel="stylesheet" type="text/css" href="../resources/home/css/style.css" />
 <link rel="stylesheet" type="text/css" href="../resources/home/css/layer.css" />

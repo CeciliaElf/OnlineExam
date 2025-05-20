@@ -108,7 +108,7 @@
 				<tr>
                     <th>真实姓名</th>
                     <td>
-						<input type="text" name="truename" class="tm_txt" size="50" maxlength="30" style="width:200px">
+						<input type="text" name="trueName" class="tm_txt" size="50" maxlength="30" style="width:200px">
 					</td>
                 </tr>
 				<tr>
@@ -178,7 +178,7 @@
 
 				var u_username = $("input[name='name']").val();
 				var u_userpass = $("input[name='password']").val();
-				var u_realname = $("input[name='truename']").val();
+				var u_truename = $("input[name='trueName']").val();
 				
 				var u_subjectId = $("select[name='subjectId']").val();
 				var u_tel = $("input[name='tel']").val();
@@ -199,9 +199,9 @@
 
 				$(".tm_btn_primary").text('提交...');
 				var tmdata = {
-						"name":u_username, "password":tm.doencrypt(u_userpass), 
-						"subjectId":u_subjectId, "u_tel":u_tel, 
-						"truename":u_truename, "t":Math.random()};
+						"name":u_username, "password":u_userpass, 
+						"subjectId":u_subjectId, "tel":u_tel, 
+						"trueName":u_truename, "t":Math.random()};
 				
 				$.ajax({
 					type: "POST",
@@ -209,20 +209,14 @@
 					dataType: "json",
 					data: tmdata,
 					success: function(data){
-						if(data){
-							var ret_code = data["code"];
-							var ret_msg = data["message"];
-
-							if(ret_code == 1 || ret_code == "1"){
-								alert(ret_msg);
-								window.location="login.html";
+						if(data.type == 'success'){
+								window.location="login";
 							}else{
-								alert(ret_msg);
+								alert(data.message);
 								//$(".tm_btn_primary").text('提交');
 								//return;
 								window.location.reload();
 							}
-						}
 					},
 					error: function(){
 						//$(".tm_btn_primary").text('登录');

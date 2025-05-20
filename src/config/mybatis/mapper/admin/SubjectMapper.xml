@@ -11,6 +11,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="edit" parameterType="com.cecilia.programmer.entity.admin.Subject">
         update subject set name=#{name}, remark=#{remark} where id = #{id} 
     </update>
+    <!--学科专业信息精确查询-->
+    <select id="findById" parameterType="Long" resultType="com.cecilia.programmer.entity.admin.Subject">
+        select * from subject where id = #{value} 
+    </select>
     <!--学科专业搜索，查询-->
     <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.Subject">
         select * from subject 

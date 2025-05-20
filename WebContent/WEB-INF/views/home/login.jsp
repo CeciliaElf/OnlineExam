@@ -68,11 +68,11 @@
             <table border="0" cellpadding="5" cellspacing="0" class="tm_login_table">
                 <tbody><tr>
                     <th>用户名</th>
-                    <td><input type="text" class="tm_txt" name="username" maxlength="20" value="" style="width:255px"></td>
+                    <td><input type="text" class="tm_txt" name="name" maxlength="20" value="" style="width:255px"></td>
                 </tr>
                 <tr>
                     <th>密 &nbsp; 码</th>
-                    <td><input type="password" class="tm_txt" name="userpass" maxlength="20" value="" style="width:255px"></td>
+                    <td><input type="password" class="tm_txt" name="password" maxlength="20" value="" style="width:255px"></td>
                 </tr>
 				
                 <tr>
@@ -95,15 +95,6 @@
 
 	<script type="text/javascript">
 		$(document).ready(function(){ 
-			$("input[name='usercode']").keydown(function(e){ 
-				var curKey = e.which; 
-				if(curKey == 13){
-					tm.doLogin(); 
-				} 
-			}); 
-
-			
-			
 			checkBrowser();
 		}); 
 
@@ -139,33 +130,16 @@
 
 
 		var tm = {
-			reloadImgcode : function(){
-				$("#img_verifycode").attr("src", "http://demo.tomexam.com/inc/checkcode.jsp?t=" + Math.random());
-			},
 			doReset : function(){
-				$("input[name='username']").val('');
-				$("input[name='userpass']").val('');
-				$("input[name='usercode']").val('');
+				$("input[name='name']").val('');
+				$("input[name='password']").val('');
 			},
 			goRegister : function(){
 				window.location="register";
 			},
-			doencrypt : function(data){
-				
-				
-					
-					var key = CryptoJS.enc.Latin1.parse('71ntk1yinm5nth35');
-					var iv = CryptoJS.enc.Latin1.parse('v0zp7ghw96edujzh');
-					return CryptoJS.AES.encrypt(data, key, {iv:iv,mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.ZeroPadding}).toString();
-					
-					
-				
-			},
 			doLogin : function(){
-				var username = $("input[name='username']").val();
-				var userpass = $("input[name='userpass']").val();
-				var usercode = $("input[name='usercode']").val();
-				var usertype = $("select[name='usertype']").val();
+				var username = $("input[name='name']").val();
+				var userpass = $("input[name='password']").val();
 				if(baseutil.isEmpty(username)){
 					alert('没有填写用户名');
 					return;
@@ -174,32 +148,21 @@
 					alert('没有填写登录密码');
 					return;
 				}
-
-				
-					if(baseutil.isEmpty(usercode)){
-						alert('没有填写验证码');
-						return;
-					}
-				
-
 				$(".tm_btn_primary").text('登录...');
 				
 				$.ajax({
 					type: "POST",
-					url: "http://demo.tomexam.com/common/login.do",
+					url: "login",
 					dataType: "json",
-					data: {"username":username, "userpass":tm.doencrypt(userpass), "usertype":usertype, "usercode":usercode, "ochanel":1, "t":Math.random()},
+					data: {"name":username, "password":userpass},
 					success: function(data){
-						if(data){
-							var ret_code = eval(data["code"]);
-							var ret_msg = data["message"];
-
-							if(ret_code == 1){
-								window.location="http://demo.tomexam.com/index.thtml";
-							}else{
-								alert(ret_msg);
-								window.location.reload();
-							}
+						if(data.type == 'success'){
+							window.location="user/index";
+						}else{
+							alert(data.message);
+							//$(".tm_btn_primary").text('提交');
+							//return;
+							window.location.reload();
 						}
 					},
 					error: function(){

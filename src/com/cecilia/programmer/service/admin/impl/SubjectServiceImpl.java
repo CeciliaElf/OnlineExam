@@ -47,4 +47,10 @@ public class SubjectServiceImpl implements SubjectService {
 		// TODO Auto-generated method stub
 		return subjectDao.getTotal(queryMap);
 	}
+
+	@Override
+	public Subject findById(Long id) {
+		// TODO Auto-generated method stub
+		return subjectDao.findById(id);
+	}
 }
