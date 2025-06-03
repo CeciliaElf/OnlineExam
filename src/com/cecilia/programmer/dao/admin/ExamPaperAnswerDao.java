@@ -18,4 +18,6 @@ public interface ExamPaperAnswerDao {
 	public List<ExamPaperAnswer> findList(Map<String, Object> queryMap);
 	public int delete(Long id);
 	public Integer getTotal(Map<String, Object> queryMap);  // 总量
+	public List<ExamPaperAnswer> findListByUser(Map<String, Object> queryMap);
+	public int submitAnswer(ExamPaperAnswer examPaperAnswer);
 }

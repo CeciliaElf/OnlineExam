@@ -20,6 +20,7 @@ public class ExamPaper {
 	private Date endExamTime; // 结束考试时间
 	private int useTime;  // 考试用时
 	private Date createTime; // 试卷创建时间
+	private Exam exam;     // 考试实体
 	public Long getId() {
 		return id;
 	}
@@ -79,5 +80,11 @@ public class ExamPaper {
 	}
 	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
+	}
+	public Exam getExam() {
+		return exam;
+	}
+	public void setExam(Exam exam) {
+		this.exam = exam;
 	}
 }

@@ -81,6 +81,7 @@
 		            	<option value = "1">多选</option>
 		            	<option value = "2">判断</option>
 		            </select>
+		            <a href="#" id="search-btn" class="easyui-linkbutton" iconCls="icon-search">搜索</a>
                 </td>
             </tr>
             <tr>
@@ -106,8 +107,70 @@
         </table>
     </form>
 </div>
+<!--导入试题弹窗-->
+<div id="import-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-save'" style="width:500px; padding:10px;">
+        <table>
+        	<tr>
+                <td align="right">请选择文件:</td>
+                <td><input type="text" name="filename" id="import-filename" rows="6" class="wu-text easyui-validatebox" readonly="readonly" data-options="required:true, missingMessage:'请选择文件'" /></td>
+                <td><a onclick="uploadFile()" href="javascript:void(0)" id="selected-file-btn" class="easyui-linkbutton" iconCls="icon-upload">选择文件</a></td>
+            </tr>
+        </table>
+</div>
+<div id="process-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-upload', title:'正在上传文件'" style="width:450px; padding:10px;">
+	<div id="p" class="easyui-progressbar" style="width: 400px;" data-options="text:'文件上传中......'"></div>
+</div>
+<input type="file" id = "excel-file" style="display:none;" onchange="selected()">
 <%@include file="../common/footer.jsp" %>
 <script type="text/javascript">
+function start(){
+    var value = $('#p').progressbar('getValue');
+    if (value < 100){
+        value += Math.floor(Math.random() * 10);
+        $('#p').progressbar('setValue', value);
+    } else {
+    	$('#p').progressbar('setValue', 0)
+	}
+};
+function selected() {
+	$("#import-filename").val($("#excel-file").val())
+}
+function upload() {
+	// 使用 Ajax 方式上传头像
+	if ($("#excel-file").val() == "") return;
+	var formData = new FormData(); // 主要用于异步上传文件或提交表单数据
+	formData.append("excelFile", document.getElementById('excel-file').files[0]);
+	$("#process-dialog").dialog("open") // .dialog() 方法就是用来将一个 HTML 元素转换成一个可交互的对话框（弹窗）
+	var interval = setInterval(start, 200);
+	$.ajax({
+		url: "upload_file", // 请求的 URL 地址
+		type: "post",
+		data: formData, // 发送到服务器的数据
+		contentType: false, // 设置请求头的 Content-Type. 设置为 false 时，jQuery 不会设置 Content-Type 请求头。对于 FormData 对象，浏览器会自动设置正确的 Content-Type (通常是 multipart/form-data)，并包含正确的边界字符串。因此，在使用 FormData 时，必须将 contentType 设置为 false，否则会导致上传失败
+		processData: false, // 是否对数据进行序列化处理. 设置为 false 时，jQuery 不会对 data 选项中提供的数据进行序列化处理。对于 FormData 对象，也必须设置为 false，因为 FormData 对象已经包含了正确的格式，不需要 jQuery 再进行处理。如果设置为 true，jQuery 会尝试将 FormData 对象转换为字符串，导致上传失败。
+		success: function(data) {
+			clearInterval(interval);
+			$("#process-dialog").dialog("close")  // 关闭进度条
+			if (data.type == 'success') {
+				$("#import-dialog").dialog("close");
+				$.messager.alert("消息提醒", data.msg, "warning");
+			} else {
+				$.messager.alert("消息提醒", data.msg, "warning");
+			}
+		},
+		error: function() {
+			clearInterval(interval);
+			$("#process-dialog").dialog("close")  // 关闭进度条
+			$.messager.alert("消息提醒", "上传失败", "warning");
+		}
+	})
+}
+
+function uploadFile() {
+	// 打开文件选择窗口
+	$("#excel-file").click();
+}
+
 	/**
 	* 添加记录
 	*/
@@ -191,6 +254,31 @@
 				});
 			}	
 		});
+	}
+	
+	/**
+	* 导入试题窗口
+	*/
+	function openImport(){
+		$('#import-dialog').dialog({
+			closed: false,
+			modal:true,
+            title: "导入考试信息",
+            buttons: [{
+                text: '确定',
+                iconCls: 'icon-ok',
+                handler: upload
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    $('#import-dialog').dialog('close');                    
+                }
+            }],
+			onBeforeOpen: function() {
+				// $("#add-form input").val("");
+			}
+        });
 	}
 	
 	/**

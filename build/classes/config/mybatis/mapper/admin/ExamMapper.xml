@@ -5,15 +5,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.cecilia.programmer.dao.admin.ExamDao">
     <!--考试插入操作-->
     <insert id="add" parameterType="com.cecilia.programmer.entity.admin.Exam">
-        insert into exam(id,subjectId,name,startTime,endTime,availableTime,questionNum,totalScore,passScore,singleQuestionNum,mutiQuestionNum,chargeQuestionNum,paperNum,examedNum,passNum,createTime) values(null,#{subjectId},#{name},#{startTime},#{endTime},#{questionNum},#{totalScore},#{passScore},#{singleQuestionNum},#{mutiQuestionNum},#{chargeQuestionNum},#{paperNum},#{examedNum},#{passNum},#{createTime}) 
+        insert into exam(id,subjectId,name,startTime,endTime,availableTime,questionNum,totalScore,passScore,singleQuestionNum,mutiQuestionNum,chargeQuestionNum,paperNum,examedNum,passNum,createTime) values(null,#{subjectId},#{name},#{startTime},#{endTime},#{availableTime},#{questionNum},#{totalScore},#{passScore},#{singleQuestionNum},#{mutiQuestionNum},#{chargeQuestionNum},#{paperNum},#{examedNum},#{passNum},#{createTime}) 
     </insert>
     <!--考试更新操作-->
     <update id="edit" parameterType="com.cecilia.programmer.entity.admin.Exam">
         update exam set name=#{name}, subjectId=#{subjectId}, startTime=#{startTime}, endTime=#{endTime}, availableTime = #{availableTime}, questionNum=#{questionNum}, totalScore=#{totalScore}, passScore=#{passScore},singleQuestionNum=#{singleQuestionNum}, mutiQuestionNum=#{mutiQuestionNum}, chargeQuestionNum=#{chargeQuestionNum} where id = #{id} 
     </update>
+    <!--考试统计数据更新操作-->
+    <update id="updateExam" parameterType="com.cecilia.programmer.entity.admin.Exam">
+        update exam set paperNum=#{paperNum}, examedNum=#{examedNum}, passNum=#{passNum} where id = #{id} 
+    </update>
     <!--考试按题目查询-->
     <select id="findByTitle" parameterType="String" resultType="com.cecilia.programmer.entity.admin.Exam">
         select * from exam where title = #{value} 
+    </select>
+    <!--考试按题目查询-->
+    <select id="findById" parameterType="Long" resultType="com.cecilia.programmer.entity.admin.Exam">
+        select * from exam where id = #{value} 
     </select>
     <!--考试搜索，查询-->
     <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.Exam">
@@ -34,6 +42,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             	limit #{offset}, #{pageSize} 
             </if>
     </select>
+    <!--考试搜索，查询-->
+    <select id="findListByUser" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.Exam">
+        select * from exam where 1 = 1 
+            <if test="name != null">
+                and name like '%${name}%' 
+            </if>
+            <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
+            <if test="startTime != null">
+                and startTime &lt;= #{startTime} 
+            </if>
+            <if test="endTime != null">
+                and endTime &gt;= #{endTime} 
+            </if>
+            order by createTime desc 
+            <if test="offset != null and pageSize != null">
+            	limit #{offset}, #{pageSize} 
+            </if>
+    </select>
     <!-- 模糊搜索总条数 -->
     <select id="getTotal" parameterType="Map" resultType="Integer">
         select count(*) from exam where 1 = 1 
@@ -48,6 +76,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
             <if test="endTime != null">
                 and endTime &lt;= #{endTime} 
+            </if>
+    </select>
+     <!-- 用户模糊搜索总条数 -->
+    <select id="getTotalByUser" parameterType="Map" resultType="Integer">
+        select count(*) from exam where 1 = 1 
+            <if test="name != null">
+                and name like '%${name}%' 
+            </if>
+            <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
+            <if test="startTime != null">
+                and startTime &lt;= #{startTime} 
+            </if>
+            <if test="endTime != null">
+                and endTime &gt;= #{endTime} 
             </if>
     </select>
     <!--删除考试讯息-->

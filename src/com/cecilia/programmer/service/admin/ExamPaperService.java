@@ -17,4 +17,8 @@ public interface ExamPaperService {
 	public List<ExamPaper> findList(Map<String, Object> queryMap);
 	public int delete(Long id);
 	public Integer getTotal(Map<String, Object> queryMap);  // 总量
+	public List<ExamPaper> findHistory(Map<String, Object> queryMap);
+	public Integer getHistoryTotal(Map<String, Object> queryMap);
+	public ExamPaper find(Map<String, Object> queryMap);
+	public int submitPaper(ExamPaper examPaper);
 }

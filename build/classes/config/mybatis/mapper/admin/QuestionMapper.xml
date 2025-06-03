@@ -15,6 +15,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="findByTitle" parameterType="String" resultType="com.cecilia.programmer.entity.admin.Question">
         select * from question where title = #{value} 
     </select>
+    <!--试题按 id 查询-->
+    <select id="findById" parameterType="Long" resultType="com.cecilia.programmer.entity.admin.Question">
+        select * from question where id = #{value} 
+    </select>
     <!--试题搜索，查询-->
     <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.Question">
         select * from question where 1 = 1 

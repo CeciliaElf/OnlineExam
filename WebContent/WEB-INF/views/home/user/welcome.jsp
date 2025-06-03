@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@include file="../common/user_header.jsp" %>
 <style>
 	h2{font-size:14px; margin:20px 0 10px 0;}
@@ -24,36 +25,31 @@
 
 			<script type="text/javascript">
 				var tm = {
-					startExam : function(obj, pid, loadcache){
+					startExam : function(e){
 						if(!tmCheckBrowserSupport()){
-							alert("抱歉，您的浏览器不被支持，如需继续使用，请更换为：Chrome、Firefox、360极速浏览器。");
+							alert("抱歉，您的浏览器不被支持，如需继续使用，请更换为：Chrome、Firefox。");
 							return false;
 						}
-
-						var _tr = $(obj).parent().parent();
-						var _p_name = _tr.children("td").eq(0).text();
-						var _p_time = _tr.children("td").eq(2).text();
-						var _p_totalscore = _tr.children("td").eq(4).text();
-						var _p_passscore = _tr.children("td").eq(5).text();
 						
-
+						var tr = $("#" + e);
+						var eid = tr.attr("data-key")
 						var html = [];
 						html.push('<div style="margin:20px">');
 						html.push('	<p style="line-height:20px">确定进入试卷并开始考试吗？</p>');
 						
 						html.push('	<table style="margin:0 auto; width:350px" border="0" cellpadding="0" cellspacing="0">');
 						html.push('	<tr>');
-						html.push('		<td width="80"><img src="skins/images/paper_pencil.png" width="60" /></td>');
-						html.push('		<td><p><b>试卷名称</b>：'+_p_name+'<p>');
-						html.push('			<p><b>考试时长</b>：'+_p_time+'<p>');
-						html.push('			<p><b>卷面总分</b>：'+_p_totalscore+'<p>');
-						html.push('			<p><b>及格分数</b>：'+_p_passscore+'<p>');
+						html.push('		<td width="80"><img src="../../resources/home/images/paper_pencil.png" width="60" /></td>');
+						html.push('		<td><p><b>试卷名称</b>：'+tr.find("td").eq(0).text()+'<p>');
+						html.push('			<p><b>考试时长</b>：'+tr.find("td").eq(2).text()+'<p>');
+						html.push('			<p><b>卷面总分</b>：'+tr.find("td").eq(4).text()+'<p>');
+						html.push('			<p><b>及格分数</b>：'+tr.find("td").eq(5).text()+'<p>');
 						html.push('		</td>');
 						html.push('	</tr>');
 						html.push('</table>');
 
 						html.push('<p style="text-align:center; margin-top:30px">');
-						html.push('<button class="tm_btn tm_btn_primary" type="button" onclick="tm.joinExam(\''+pid+'\',this,\''+loadcache+'\')">确定</button>');
+						html.push('<button class="confirm-exam tm_btn tm_btn_primary" type="button" onclick="tm.joinExam(\''+eid+'\')">确定</button>');
 						html.push('</p>');
 
 						html.push('</div>');
@@ -69,38 +65,33 @@
 
 						return false;
 					},
-					joinExam : function(pid, _me, loadcache){
-						$(_me).text('请稍等...');
-						$(_me).attr("disabled", true);
-						setTimeout(function(){
-							window.location.href="http://demo.tomexam.com/user/paper/paper_detail.thtml?pid="+pid + "&loadcache="+loadcache;
-						}, 3000);
+					joinExam : function(eid){
+						$(".confirm-exam").text('请稍等...');
+						$(".confirm-exam").attr("disabled", true);
+						$.ajax({
+							type: "POST",
+							url: "../exam/start_exam",
+							dataType: "json",
+							data: {"examId":eid},
+							success: function(data){
+								if(data.type == 'success'){
+									window.location="../exam/examing?examId="+eid;
+								}else{
+									alert(data.message);
+									//$(".tm_btn_primary").text('提交');
+									//return;
+									window.location.reload();
+								}
+							},
+							error: function(){
+								//$(".tm_btn_primary").text('登录');
+								alert('系统忙，请稍后再试');
+								window.location.reload();
+							}
+						}); 
 					}
 				};
-
-
-				function showTipOfTimeOut(user_starttime, exam_duration, exam_enddate){
-					var wdesc = [];
-					wdesc.push("<b>什么是超时未提交？</b>");
-					wdesc.push("<br/>");
-					wdesc.push("1、该试卷需在 <font color='red'>"+exam_duration+"分钟</font> 内或 <font color='red'>"+exam_enddate+"</font> 前提交答卷（先到为准）。");
-					wdesc.push("<br/>");
-					wdesc.push("2、该试卷您的开考时间为：<font color='red'>"+user_starttime+"</font>，当前已超时，无法提交。");
-					wdesc.push("<br/>");
-					wdesc.push("3、管理员可根据需要，使用您最后一次的答卷快照作为统计分值的依据。");
-
-					layer.open({
-					  type: 1,
-					  title: false,
-					  closeBtn: 1,
-					  shadeClose: true,
-						  area: ['600px', '150px'],
-					  content: '<div style="padding:20px 20px; line-height:25px">'+wdesc.join("")+'</div>'
-					});
-				}
 			</script>
-
-
 
 			<div class="tm_container">
 				<div class="tm_blocker2">
@@ -111,21 +102,29 @@
 								<th>试卷名称</th>
 								<th>时间设定</th>
 								<th>考试时长</th>
-								<th>试卷类型</th>
+								<th>考试科目</th>
 								<th>卷面总分</th>
 								<th>及格分数</th>
 								<th>操作</th>
 							</tr>
 						</thead>
 						<tbody>
-							
-								
-									<tr>
-										<td colspan="7">没有进行中的考试</td>
+							<c:if test="${empty examList}">
+								<tr>
+									<td colspan="7">没有进行中的考试</td>
+								</tr>
+							</c:if>
+							<c:forEach items="${ examList }" var="exam">
+									<tr id="tr-${ exam.id }" data-key="${ exam.id }">
+										<td>${ exam.name }</td>
+										<td><fmt:formatDate value="${ exam.startTime }" pattern="yyyy-MM-dd HH:mm:ss" />——<fmt:formatDate value="${ exam.endTime }" pattern="yyyy-MM-dd HH:mm:ss" /></td>
+										<td>${ exam.availableTime }分钟</td>
+										<td>${ subject.name }</td>
+										<td>${ exam.totalScore }</td>
+										<td>${ exam.passScore }</td>
+										<td><button class="tm_btn_primary" href="javascript:void(0)" onclick="tm.startExam('tr-${ exam.id }');">开始考试</button></td>
 									</tr>
-								
-								
-							
+							</c:forEach>
 						</tbody>
 					</table>
 				</div>
@@ -137,7 +136,7 @@
 					<table width="100%" cellpadding="10" border="0" class="tm_table_list">
 						<thead>
 							<tr>
-								<th>试卷名称</th>
+								<th>考试名称</th>
 								<th>考试时长</th>
 								<th>考试耗时</th>
 								<th>考试时间</th>
@@ -146,162 +145,31 @@
 							</tr>
 						</thead>
 						<tbody>
-							
-								
-								
-									
-									<tr>
-										<td>给张三的考试</td>
-										<td><span class="tm_label">100</span> 分钟</td>
-										<td><span class="tm_label">0</span> 分钟</td>
-										<td>
-											2019-04-26 16:58:58.0<br/>2019-04-26 16:59:52.0
-										</td>
-										<td>
-											
-												
-													<span class="tm_label">0</span>
-													
-														
-														<font color="red"><b>不及格</b></font>
-													
-												
-												
-											
-										</td>
-										<td>
-											
-												
-													<a href="user/paper/history_detail.thtml?eid=e48a94da-1477-4c34-874b-bf1f9a411a1a&pid=83e4b472-297d-4002-9865-b92c4c6c9160">详情</a>
-												
-												
-											
-											
-										</td>
-									</tr>
-									
-									<tr>
-										<td>ceshi2019</td>
-										<td><span class="tm_label">50</span> 分钟</td>
-										<td><span class="tm_label">0</span> 分钟</td>
-										<td>
-											2019-04-25 13:40:22.0<br/>2019-04-25 13:40:40.0
-										</td>
-										<td>
-											
-												
-													<span class="tm_label">0</span>
-													
-														
-														<font color="red"><b>不及格</b></font>
-													
-												
-												
-											
-										</td>
-										<td>
-											
-												
-													<a href="user/paper/history_detail.thtml?eid=195169b7-e181-43f2-a9db-9e2365b5138b&pid=1c5e822c-627e-43cd-ae97-49a13af1cd1c">详情</a>
-												
-												
-											
-											
-										</td>
-									</tr>
-									
-									<tr>
-										<td>957444</td>
-										<td><span class="tm_label">60</span> 分钟</td>
-										<td><span class="tm_label">0</span> 分钟</td>
-										<td>
-											2019-04-23 23:00:40.0<br/>2019-04-23 23:00:59.0
-										</td>
-										<td>
-											
-												
-													<span class="tm_label">0</span>
-													
-														
-														<font color="red"><b>不及格</b></font>
-													
-												
-												
-											
-										</td>
-										<td>
-											
-												
-													<a href="user/paper/history_detail.thtml?eid=c2f92acd-e4a9-4a16-be02-bf4dfeff268b&pid=b0f33cd3-8d9f-4c8c-8f78-daf3ceb9c31b">详情</a>
-												
-												
-											
-											
-										</td>
-									</tr>
-									
-									<tr>
-										<td>123456</td>
-										<td><span class="tm_label">60</span> 分钟</td>
-										<td><span class="tm_label">0</span> 分钟</td>
-										<td>
-											2019-04-23 22:59:29.0<br/>2019-04-23 23:00:07.0
-										</td>
-										<td>
-											
-												
-													<span class="tm_label">10</span>
-													
-														
-														<font color="red"><b>不及格</b></font>
-													
-												
-												
-											
-										</td>
-										<td>
-											
-												
-													<a href="user/paper/history_detail.thtml?eid=a8b00654-b528-4d79-bb4f-6a8901672691&pid=85adcec0-5996-4fc2-9e5f-373b23e5e9ea">详情</a>
-												
-												
-											
-											
-										</td>
-									</tr>
-									
-									<tr>
-										<td>222333</td>
-										<td><span class="tm_label">180</span> 分钟</td>
-										<td><span class="tm_label">0</span> 分钟</td>
-										<td>
-											2019-04-22 17:31:01.0<br/>2019-04-22 17:31:10.0
-										</td>
-										<td>
-											
-												
-													<span class="tm_label">0</span>
-													
-														
-														<font color="red"><b>不及格</b></font>
-													
-												
-												
-											
-										</td>
-										<td>
-											
-												
-													<a href="user/paper/history_detail.thtml?eid=9a8657d4-f985-44e0-a041-e0102f9e1a35&pid=cbd66ea4-8843-456b-9b26-20393b8bdc18">详情</a>
-												
-												
-											
-											
-										</td>
-									</tr>
-									
-								
-							
+							<c:if test="${empty historyList}">
+								<tr>
+									<td colspan="7">你还没有考过试</td>
+								</tr>
+							</c:if>
+							<c:forEach items="${ historyList }" var="history">
+								<tr>
+									<td>${ history.exam.name }</td>
+									<td><span class="tm_label">${ history.exam.availableTime }</span> 分钟</td>
+									<td><span class="tm_label">${ history.useTime }</span> 分钟</td>
+									<td>
+										<fmt:formatDate value="${ history.startExamTime }" pattern="yyyy-MM-dd HH:mm:ss" />
+										<br/><fmt:formatDate value="${ history.endExamTime }" pattern="yyyy-MM-dd HH:mm:ss" />
+									</td>
+									<td>
+										<span class="tm_label">${ history.score }</span>
+										<c:if test="${ history.exam.passScore >= history.score }">
+											<font color="red"><b>不及格</b></font>
+										</c:if>	
+									</td>
+									<td>
+										<a href="">回顾试卷</a>
+									</td>
+								</tr>
+							</c:forEach>
 						</tbody>
 					</table>
 				</div>

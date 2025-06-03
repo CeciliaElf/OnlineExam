@@ -3,6 +3,28 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cecilia.programmer.dao.admin.ExamPaperAnswerDao">
+	<resultMap id="userQuestion" type="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
+		<id column="epa_id" property="id" />
+		<result column="epa_examId" property="examId" />
+		<result column="epa_studentId" property="studentId" />
+		<result column="epa_examPaperId" property="examPaperId" />
+		<result column="epa_totalScore" property="totalScore" />
+		<result column="epa_questionId" property="questionId" />
+		<result column="epa_answer" property="answer" />
+		<result column="epa_isCorrect" property="isCorrect" />
+		<association property="question" javaType="com.cecilia.programmer.entity.admin.Question">
+			<id column="q_id" property="id" />
+			<result column="q_questionType" property="questionType" />
+			<result column="q_title" property="title" />
+			<result column="q_score" property="score" />
+			<result column="q_attrA" property="attrA" />
+			<result column="q_attrB" property="attrB" />
+			<result column="q_attrC" property="attrC" />
+			<result column="q_attrD" property="attrD" />
+			<result column="q_answer" property="answer" />
+			<result column="q_createTime" property="createTime" />
+		</association>
+	</resultMap>
     <!--试卷答题信息插入操作-->
     <insert id="add" parameterType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
         insert into examPaperAnswer(id,examPaperId,examId,studentId,questionId,answer,isCorrect) values(null,#{examPaperId},#{examId},#{studentId},#{questionId},#{answer},#{isCorrect}) 
@@ -10,6 +32,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <!--试卷答题信息更新操作-->
     <update id="edit" parameterType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
         update examPaperAnswer set examPaperId=#{examPaperId}, studentId=#{studentId} where id = #{id} 
+    </update>
+    <!--试卷提交答案操作-->
+    <update id="submitAnswer" parameterType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
+        update examPaperAnswer set answer=#{answer}, isCorrect=#{isCorrect} where id = #{id} 
     </update>
     <!--试卷答题信息搜索，查询-->
     <select id="findList" parameterType="Map" resultType="com.cecilia.programmer.entity.admin.ExamPaperAnswer">
@@ -23,6 +49,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="questionId != null">
                 and questionId = #{questionId} 
             </if>
+            <if test="offset != null and pageSize != null">
+            	limit #{offset}, #{pageSize} 
+            </if>
+    </select>
+     <!--根据某个学生查询试卷答题信息-->
+    <select id="findListByUser" parameterType="Map" resultMap="userQuestion">
+        select 
+        	epa.id as epa_id, epa.studentId as epa_studentId, epa.examId as epa_examId, epa.examPaperId as epa_examPaperId,
+        	epa.questionId as epa_questionId, epa.answer as epa_answer, epa.isCorrect as epa_isCorrect,
+        	q.id as q_id, q.questionType as q_questionType, q.title as q_title, q.score as q_score, q.attrA as q_attrA,
+        	q.attrB as q_attrB, q.attrC as q_attrC, q.attrD as q_attrD, q.answer as q_answer, q.createTime as q_createTime
+        from examPaperAnswer epa, question q where epa.questionId = q.id and epa.examId = #{examId} and epa.studentId = #{studentId} and epa.examPaperId = #{examPaperId} 
     </select>
     <!-- 模糊搜索总条数 -->
     <select id="getTotal" parameterType="Map" resultType="Integer">

@@ -10,10 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.cecilia.programmer.entity.admin.Student;
+import com.cecilia.programmer.service.admin.ExamPaperService;
 import com.cecilia.programmer.service.admin.ExamService;
 import com.cecilia.programmer.service.admin.StudentService;
 import com.cecilia.programmer.service.admin.SubjectService;
@@ -32,6 +34,9 @@ public class HomeStudentController {
 	private SubjectService subjectService;
 	@Autowired
 	private ExamService examService;
+	@Autowired
+	private ExamPaperService examPaperService;
+	private int pageSize = 10;
 	
 	/**
 	 * 考生中心首页
@@ -55,6 +60,18 @@ public class HomeStudentController {
 	@RequestMapping(value = "/welcome", method = RequestMethod.GET)
 	public ModelAndView welcome(ModelAndView model, HttpServletRequest request) {
 		model.addObject("title", "考生中心");
+		Student student =  (Student)request.getSession().getAttribute("student");
+		Map<String, Object> queryMap = new HashMap<String, Object>();
+		queryMap.put("subjectId", student.getSubjectId());
+		queryMap.put("startTime", DateFormatUtil.getDate("yyyy-MM-dd hh:mm:ss", new Date()));
+		queryMap.put("endTime", DateFormatUtil.getDate("yyyy-MM-dd hh:mm:ss", new Date()));
+		queryMap.put("offset", 0);
+		queryMap.put("pagesize", 10); // 拿最新的十条考试
+		model.addObject("examList", examService.findListByUser(queryMap));
+		queryMap.remove("subjectId");
+		queryMap.put("studentId", student.getId());
+		model.addObject("historyList", examPaperService.findHistory(queryMap));
+		model.addObject("subject", subjectService.findById(student.getSubjectId()));
 		model.setViewName("/home/user/welcome");
 		return model;
 	}
@@ -182,17 +199,63 @@ public class HomeStudentController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/examing", method = RequestMethod.GET)
-	public ModelAndView examing(ModelAndView model, HttpServletRequest request) {
+	@RequestMapping(value = "/exam_list", method = RequestMethod.GET)
+	public ModelAndView examList(ModelAndView model,
+			@RequestParam(name = "name",defaultValue = "") String name,
+			@RequestParam(name = "page",defaultValue = "1") Integer page,
+			HttpServletRequest request) {
 		Student student =  (Student)request.getSession().getAttribute("student");
 		Map<String, Object> queryMap = new HashMap<String, Object>();
 		queryMap.put("subjectId", student.getSubjectId());
-		queryMap.put("startTime", DateFormatUtil.getDate("yyyy-MM-dd hh:mm:ss", new Date()));
-		queryMap.put("endTime", DateFormatUtil.getDate("yyyy-MM-dd hh:mm:ss", new Date()));
-		queryMap.put("offset", 0);
-		queryMap.put("pagesize", 10); // 拿最新的十条考试
-		model.addObject("student", student);
-		model.setViewName("/home/user/password");
+		queryMap.put("name", name);
+		queryMap.put("offset", getOffset(page, pageSize));
+		queryMap.put("pageSize", pageSize); // 拿最新的十条考试
+		model.addObject("examList", examService.findListByUser(queryMap));
+		model.addObject("name", name);
+		model.addObject("subject", subjectService.findById(student.getSubjectId()));
+		model.addObject("nowTime", System.currentTimeMillis());
+		model.setViewName("/home/user/exam_list");
+		if (page < 1) {
+			page = 1;
+		}
+		model.addObject("page", page);
 		return model;
+	}
+	
+	/**
+	 * 当前学生考过的考试列表
+	 * @param model
+	 * @param name
+	 * @param page
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/history_list", method = RequestMethod.GET)
+	public ModelAndView historyList(ModelAndView model,
+			@RequestParam(name = "name",defaultValue = "") String name,
+			@RequestParam(name = "page",defaultValue = "1") Integer page,
+			HttpServletRequest request) {
+		Student student =  (Student)request.getSession().getAttribute("student");
+		Map<String, Object> queryMap = new HashMap<String, Object>();
+		queryMap.put("name", name);
+		queryMap.put("studentId", student.getId());
+		queryMap.put("offset", getOffset(page, pageSize));
+		queryMap.put("pageSize", pageSize); // 拿最新的十条考试
+		model.addObject("historyList", examPaperService.findHistory(queryMap));
+		model.addObject("name", name);
+		model.addObject("subject", subjectService.findById(student.getSubjectId()));
+		model.setViewName("/home/user/history_list");
+		if (page < 1) {
+			page = 1;
+		}
+		model.addObject("page", page);
+		return model;
+	}
+	
+	private int getOffset(int page, int pageSize) {
+		if (page < 1) {
+			page = 1;
+		}
+		return (page - 1) * pageSize;
 	}
 }

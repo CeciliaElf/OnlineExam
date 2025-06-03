@@ -19,4 +19,5 @@ public interface QuestionService {
 	public Integer getTotal(Map<String, Object> queryMap);  // 总量
 	public Question findByTitle(String title);
 	public int getQuestionNumByType(int questionType); // 根据试题类型获取试题数量
+	public Question findById(Long id);
 }

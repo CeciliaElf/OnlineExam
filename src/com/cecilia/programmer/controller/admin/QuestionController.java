@@ -1,9 +1,14 @@
 package com.cecilia.programmer.controller.admin;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -11,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.cecilia.programmer.entity.admin.Question;
@@ -189,5 +195,109 @@ public class QuestionController {
 		ret.put("type", "success");
 		ret.put("msg", "删除成功");
 		return ret;
+	}
+	
+	/**
+	 * 上传文件批量导入试题
+	 * @param excelFile
+	 * @return
+	 */
+	@RequestMapping(value = "/upload_file", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, String> upload_file(MultipartFile excelFile) {
+		Map<String, String> ret = new HashMap<String, String>();
+		if (excelFile == null) {
+			ret.put("type", "error");
+			ret.put("msg", "请选择文件");
+			return ret;
+		}
+		if (excelFile.getSize() > 5000000) {
+			ret.put("type", "error");
+			ret.put("msg", "文件大小不要超过5MB");
+			return ret;
+		}
+		String suffix = excelFile.getOriginalFilename().substring(excelFile.getOriginalFilename().lastIndexOf(".") + 1, 
+				excelFile.getOriginalFilename().length());
+		if (!"xls, xlsx".contains(suffix)) {
+			ret.put("type", "error");
+			ret.put("msg", "请上传xls, xlsx最新格式的文件");
+			return ret;
+		}
+		String message = "导入成功";
+		try {
+			message = readExcel(excelFile.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if ("".equals(message)) {
+			message = "全部导入成功";
+		}
+		ret.put("type", "success");
+		ret.put("msg", message);
+		return ret;
+	}
+	
+	/**
+	 * 读取 excel 文件并插入到数据库
+	 * @param fileInputStream
+	 * @return
+	 */
+	private String readExcel(InputStream fileInputStream) {
+		String message = "";
+		try {
+			// 把一个表格对象根据流的形式传递到 HSSFWorkbook 中
+			HSSFWorkbook hssfWorkbook = new HSSFWorkbook(fileInputStream);
+			HSSFSheet sheetAt = hssfWorkbook.getSheetAt(0);
+			if (sheetAt.getLastRowNum() <= 0) {
+				message = "该文件为空";
+			}
+			for (int rowIndex = 1; rowIndex <= sheetAt.getLastRowNum(); rowIndex++) {
+				Question question = new Question();
+				HSSFRow row =  sheetAt.getRow(rowIndex);
+				if (row.getCell(0) == null) {
+					message += "第" + rowIndex + "行，试题类型为空，跳过导入<br/>";
+					continue;
+				}
+				Double numericCellValue = row.getCell(0).getNumericCellValue();
+				question.setQuestionType(numericCellValue.intValue());
+				if(row.getCell(1) == null) {
+					message += "第" + rowIndex + "行，题目为空，跳过导入<br/>";
+					continue;
+				}
+				question.setTitle(row.getCell(1).getStringCellValue());
+				if(row.getCell(2) == null) {
+					message += "第" + rowIndex + "行，分值为空，跳过导入<br/>";
+					continue;
+				}
+				numericCellValue = row.getCell(0).getNumericCellValue();
+				question.setScore(numericCellValue.intValue());
+				if(row.getCell(3) == null) {
+					message += "第" + rowIndex + "行，选项A为空，跳过导入<br/>";
+					continue;
+				}
+				question.setAttrA(row.getCell(3).getStringCellValue());
+				if(row.getCell(4) == null) {
+					message += "第" + rowIndex + "行，选项B为空，跳过导入<br/>";
+					continue;
+				}
+				question.setAttrB(row.getCell(4).getStringCellValue());
+				question.setAttrC(row.getCell(5) == null ? "" : row.getCell(5).getStringCellValue());
+				question.setAttrD(row.getCell(6) == null ? "" : row.getCell(6).getStringCellValue());
+				if(row.getCell(7) == null) {
+					message += "第" + rowIndex + "行，正确答案为空，跳过导入\n";
+					continue;
+				}
+				question.setAnswer(row.getCell(7).getStringCellValue());
+				question.setCreateTime(new Date());
+				if (questionService.add(question) <= 0) {
+					message += "第" + rowIndex + "行，插入数据库失败\n";
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return message;
 	}
 }

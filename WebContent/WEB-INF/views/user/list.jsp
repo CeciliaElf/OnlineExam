@@ -30,20 +30,20 @@
     <!-- End of toolbar -->
     <table id="data-datagrid" class="easyui-datagrid" toolbar="#wu-toolbar"></table>
 </div>
-<!-- Begin of easyui-dialog -->
+<!-- 添加弹窗 -->
 <div id="add-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-save'" style="width:420px; padding:10px;">
 	<form id="add-form" method="post">
         <table>
             <tr>
                 <td width="60" align="right">头像预览:</td>
                 <td valign="middle">
-                	<img id="preview-photo" style="float:left;" src="/BaseProjectSSM/resources/admin/easyui/images/user_avatar.jpg" width="100px">
+                	<img id="preview-photo" style="float:left;" src="/OnlineExam/resources/admin/easyui/images/user_avatar.jpg" width="100px">
                 	<a style="float:left; margin-top: 40px" href="javascript:void(0)" class = "easyui-linkbutton" iconCls="icon-folder" onclick="uploadPhoto()" plain="true">上传头像</a>
                 </td>
             </tr>
             <tr>
                 <td width="60" align="right">头像:</td>
-                <td><input type="text" id = "add-photo" name="photo" value="/BaseProjectSSM/resources/admin/easyui/images/user_avatar.jpg" readonly="readonly" class="wu-text" /></td>
+                <td><input type="text" id = "add-photo" name="photo" value="/OnlineExam/resources/admin/easyui/images/user_avatar.jpg" readonly="readonly" class="wu-text" /></td>
             </tr>
             <tr>
                 <td width="60" align="right">用户名:</td>

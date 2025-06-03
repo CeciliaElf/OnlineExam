@@ -48,4 +48,16 @@ public class ExamPaperAnswerServiceImpl implements ExamPaperAnswerService {
 		// TODO Auto-generated method stub
 		return examPaperAnswerDao.getTotal(queryMap);
 	}
+
+	@Override
+	public List<ExamPaperAnswer> findListByUser(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examPaperAnswerDao.findListByUser(queryMap);
+	}
+
+	@Override
+	public int submitAnswer(ExamPaperAnswer examPaperAnswer) {
+		// TODO Auto-generated method stub
+		return examPaperAnswerDao.submitAnswer(examPaperAnswer);
+	}
 }

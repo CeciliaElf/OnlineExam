@@ -48,5 +48,29 @@ public class ExamServiceImpl implements ExamService {
 		// TODO Auto-generated method stub
 		return examDao.getTotal(queryMap);
 	}
+
+	@Override
+	public List<Exam> findListByUser(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examDao.findListByUser(queryMap);
+	}
+
+	@Override
+	public Integer getTotalByUser(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examDao.getTotalByUser(queryMap);
+	}
+
+	@Override
+	public Exam findById(Long id) {
+		// TODO Auto-generated method stub
+		return examDao.findById(id);
+	}
+
+	@Override
+	public int updateExam(Exam exam) {
+		// TODO Auto-generated method stub
+		return examDao.updateExam(exam);
+	}
 	
 }

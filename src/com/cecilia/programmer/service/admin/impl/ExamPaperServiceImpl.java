@@ -48,5 +48,28 @@ public class ExamPaperServiceImpl implements ExamPaperService {
 		// TODO Auto-generated method stub
 		return examPaperDao.findList(queryMap);
 	}
-	
+
+	@Override
+	public List<ExamPaper> findHistory(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examPaperDao.findHistory(queryMap);
+	}
+
+	@Override
+	public Integer getHistoryTotal(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examPaperDao.getHistoryTotal(queryMap);
+	}
+
+	@Override
+	public ExamPaper find(Map<String, Object> queryMap) {
+		// TODO Auto-generated method stub
+		return examPaperDao.find(queryMap);
+	}
+
+	@Override
+	public int submitPaper(ExamPaper examPaper) {
+		// TODO Auto-generated method stub
+		return examPaperDao.submitPaper(examPaper);
+	}
 }

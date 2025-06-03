@@ -60,5 +60,11 @@ public class QuestionServiceImpl implements QuestionService {
 		// TODO Auto-generated method stub
 		return questionDao.getQuestionNumByType(questionType);
 	}
+
+	@Override
+	public Question findById(Long id) {
+		// TODO Auto-generated method stub
+		return questionDao.findById(id);
+	}
 	
 }

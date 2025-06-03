@@ -15,6 +15,7 @@ public class ExamPaperAnswer {
 	private Long questionId; // 所属试题 id
 	private String answer; // 提交答案
 	private int isCorrect; // 是否正确
+	private Question question; // 试题集
 	public Long getId() {
 		return id;
 	}
@@ -56,5 +57,11 @@ public class ExamPaperAnswer {
 	}
 	public void setIsCorrect(int isCorrect) {
 		this.isCorrect = isCorrect;
+	}
+	public Question getQuestion() {
+		return question;
+	}
+	public void setQuestion(Question question) {
+		this.question = question;
 	}
 }
