@@ -411,7 +411,7 @@ function autoSubmitExam() {
 		},
 		beforeSend: function() {
 			autoSubmit = true;
-		}
+		},
 		error: function(){
 			//$(".tm_btn_primary").text('登录');
 			alert('系统忙，请稍后再试');

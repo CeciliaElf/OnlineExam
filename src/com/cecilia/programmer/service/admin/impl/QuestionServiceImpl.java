@@ -56,9 +56,9 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
-	public int getQuestionNumByType(int questionType) {
+	public int getQuestionNumByType(Map<String, Long> queryMap) {
 		// TODO Auto-generated method stub
-		return questionDao.getQuestionNumByType(questionType);
+		return questionDao.getQuestionNumByType(queryMap);
 	}
 
 	@Override

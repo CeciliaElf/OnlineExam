@@ -17,6 +17,13 @@
             	<option value = "1">多选</option>
             	<option value = "2">判断</option>
             </select>
+            <label>试题科目：</label>
+            <select class="wu-text easyui-combobox" id="search-subject-type" panelHeight="auto" style="width:150px">
+            	<option value = "-1">全部</option>
+            	<c:forEach items="${ subjectList }" var="subject">
+            		<option value="${ subject.id }">${ subject.name }</option>
+            	</c:forEach>
+            </select>
             <a href="#" id="search-btn" class="easyui-linkbutton" iconCls="icon-search">搜寻</a>
         </div>
     </div>
@@ -30,6 +37,16 @@
         	<tr>
                 <td align="right">试题题目:</td>
                 <td><input name="title" id="add-title" rows="6" class="wu-text easyui-validatebox" data-options="required:true, missingMessage:'请填写试题题目'" /></td>
+            </tr>
+            <tr>
+                <td align="right">所属科目:</td>
+                <td>
+                	<select name="subjectId" class="easyui-combobox easyui-validatebox" panelHeight="auto" style="width:268px" data-options="required:true, missingMessage:'请选择考试科目'">
+		            	<c:forEach items="${ subjectList }" var="subject">
+		            		<option value="${ subject.id }">${ subject.name }</option>
+		            	</c:forEach>
+		            </select>
+                </td>
             </tr>
             <tr>
                 <td align="right">所属类型:</td>
@@ -65,13 +82,23 @@
     </form>
 </div>
 <!--修改弹窗-->
-<div id="edit-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-save'" style="width:450px; padding:10px;">
+<div id="edit-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-save'" style="width:550px; padding:10px;">
 	<form id="edit-form" method="post">
 		<input type="hidden" name="id" id="edit-id">
         <table>
 			<tr>
                 <td align="right">试题题目:</td>
                 <td><input name="title" id="edit-title" rows="6" class="wu-text easyui-validatebox" data-options="required:true, missingMessage:'请填写试题题目'" /></td>
+            </tr>
+            <tr>
+                <td align="right">所属科目:</td>
+                <td>
+                	<select id="edit-subjectId" name="subjectId" class="easyui-combobox easyui-validatebox" panelHeight="auto" style="width:268px" data-options="required:true, missingMessage:'请选择考试科目'">
+		            	<c:forEach items="${ subjectList }" var="subject">
+		            		<option value="${ subject.id }">${ subject.name }</option>
+		            	</c:forEach>
+		            </select>
+                </td>
             </tr>
             <tr>
                 <td align="right">所属类型:</td>
@@ -115,6 +142,16 @@
                 <td><input type="text" name="filename" id="import-filename" rows="6" class="wu-text easyui-validatebox" readonly="readonly" data-options="required:true, missingMessage:'请选择文件'" /></td>
                 <td><a onclick="uploadFile()" href="javascript:void(0)" id="selected-file-btn" class="easyui-linkbutton" iconCls="icon-upload">选择文件</a></td>
             </tr>
+            <tr>
+                <td align="right">所属科目:</td>
+                <td>
+                	<select id="import-subjectId" name="subjectId" class="easyui-combobox easyui-validatebox" panelHeight="auto" style="width:268px" data-options="required:true, missingMessage:'请选择考试科目'">
+		            	<c:forEach items="${ subjectList }" var="subject">
+		            		<option value="${ subject.id }">${ subject.name }</option>
+		            	</c:forEach>
+		            </select>
+                </td>
+            </tr>
         </table>
 </div>
 <div id="process-dialog" class="easyui-dialog" data-options="closed:true,iconCls:'icon-upload', title:'正在上传文件'" style="width:450px; padding:10px;">
@@ -140,6 +177,7 @@ function upload() {
 	if ($("#excel-file").val() == "") return;
 	var formData = new FormData(); // 主要用于异步上传文件或提交表单数据
 	formData.append("excelFile", document.getElementById('excel-file').files[0]);
+	formData.append("subjectId", $("#import-subjectId").combobox('getValue'));
 	$("#process-dialog").dialog("open") // .dialog() 方法就是用来将一个 HTML 元素转换成一个可交互的对话框（弹窗）
 	var interval = setInterval(start, 200);
 	$.ajax({
@@ -154,6 +192,7 @@ function upload() {
 			if (data.type == 'success') {
 				$("#import-dialog").dialog("close");
 				$.messager.alert("消息提醒", data.msg, "warning");
+				$('#data-datagrid').datagrid('reload');
 			} else {
 				$.messager.alert("消息提醒", data.msg, "warning");
 			}
@@ -315,6 +354,7 @@ function uploadFile() {
 				$("#edit-attrD").val(item.attrD);
 				$("#edit-answer").val(item.answer);
 				$("#edit-questionType").combobox('setValue' ,item.questionType);
+				$("#edit-subjectId").combobox('setValue' ,item.subjectId);
 			}
         });
 	}
@@ -351,8 +391,12 @@ function uploadFile() {
 	$("#search-btn").click(function() {
 		var option = {title: $("#search-title").val()};
 		var questionType = $("#search-question-type").combobox('getValue');
+		var subjectId = $("#search-subject-type").combobox('getValue');
 		if (questionType != -1) {
 			option.questionType = questionType
+		}
+		if (subjectId != -1) {
+			option.subjectId = subjectId
 		}
 		$("#data-datagrid").datagrid("reload", option)
 	});
@@ -388,6 +432,13 @@ function uploadFile() {
 		columns:[[
 			{ field:'chk',checkbox: true},
 			{ field:'title',title:'试题题目',width:300,sortable:true},
+			{ field:'subjectId',title:'所属学科',width:100,sortable:true, formatter: function(value, row, index) {
+				var subjectList = $("#search-subject-type").combobox("getData");
+				for (var i = 0; i < subjectList.length; i++) {
+					if (subjectList[i].value == value) return subjectList[i].text;
+				}
+				return value;
+		}},
 			{ field:'score',title:'试题分值',width:50,sortable:true},
 			{ field:'questionType',title:'试题类型',width:100,sortable:true, formatter: function(value, row, index) {
 					switch (value) {

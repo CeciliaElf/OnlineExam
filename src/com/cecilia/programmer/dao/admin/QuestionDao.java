@@ -19,6 +19,6 @@ public interface QuestionDao {
 	public int delete(Long id);
 	public Integer getTotal(Map<String, Object> queryMap);  // 总量
 	public Question findByTitle(String title);
-	public int getQuestionNumByType(int questionType);
+	public int getQuestionNumByType(Map<String, Long> queryMap);
 	public Question findById(Long id);
 }

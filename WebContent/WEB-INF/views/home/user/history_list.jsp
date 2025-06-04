@@ -47,7 +47,7 @@
 					<c:forEach items="${ historyList }" var="history">
 						<tr>
 							<td>${ history.exam.name }</td>
-							<td>${ history.status }</td>
+							<td>已批阅</td>
 							<td><span class="tm_label">${ history.exam.availableTime }</span> 分钟</td>
 							<td><span class="tm_label">${ history.useTime }</span> 分钟</td>
 							<td>

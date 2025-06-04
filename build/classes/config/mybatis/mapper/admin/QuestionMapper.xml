@@ -5,11 +5,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.cecilia.programmer.dao.admin.QuestionDao">
     <!--试题插入操作-->
     <insert id="add" parameterType="com.cecilia.programmer.entity.admin.Question">
-        insert into question(id,questionType,title,score,attrA,attrB,attrC,attrD,answer,createTime) values(null,#{questionType},#{title},#{score},#{attrA},#{attrB},#{attrC},#{attrD},#{answer},#{createTime}) 
+        insert into question(id,subjectId,questionType,title,score,attrA,attrB,attrC,attrD,answer,createTime) values(null,#{subjectId},#{questionType},#{title},#{score},#{attrA},#{attrB},#{attrC},#{attrD},#{answer},#{createTime}) 
     </insert>
     <!--试题更新操作-->
     <update id="edit" parameterType="com.cecilia.programmer.entity.admin.Question">
-        update question set title=#{title}, score=#{score}, questionType=#{questionType}, attrA=#{attrA}, attrB=#{attrB}, attrC=#{attrC}, attrD=#{attrD},answer=#{answer} where id = #{id} 
+        update question set subjectId=#{subjectId}, title=#{title}, score=#{score}, questionType=#{questionType}, attrA=#{attrA}, attrB=#{attrB}, attrC=#{attrC}, attrD=#{attrD},answer=#{answer} where id = #{id} 
     </update>
     <!--试题按题目查询-->
     <select id="findByTitle" parameterType="String" resultType="com.cecilia.programmer.entity.admin.Question">
@@ -28,6 +28,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="questionType != null">
                 and questionType like #{questionType} 
             </if>
+             <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
             <if test="offset != null and pageSize != null">
             	limit #{offset}, #{pageSize} 
             </if>
@@ -41,10 +44,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="questionType != null">
                 and questionType like #{questionType} 
             </if>
+             <if test="subjectId != null">
+                and subjectId like #{subjectId} 
+            </if>
     </select>
     <!-- 根据试题类型获取试题数量 -->
-    <select id="getQuestionNumByType" parameterType="Integer" resultType="Integer">
-        select count(*) from question where questionType = ${value} 
+    <select id="getQuestionNumByType" parameterType="Map" resultType="Integer">
+        select count(*) from question where questionType = ${questionType} and subjectId = #{subjectId} 
     </select>
     <!--删除试题讯息-->
     <delete id="delete" parameterType="Long">

@@ -135,22 +135,27 @@ public class ExamController {
 		}
 		exam.setCreateTime(new Date());
 		// 算试题总数和总分，此时去查询所填写的题型数量是够满足
-		// 获取单选题
-		int singleQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_SINGLE);
+		// 获取单选题总数
+		Map<String, Long> queryMap = new HashMap<String, Long>();
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_SINGLE));
+		queryMap.put("subjectId", exam.getSubjectId());
+		int singleQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getSingleQuestionNum() > singleQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "单选题数量超过题库总数，请修改");
 			return ret;
 		}
-		// 获取多选题
-		int mutiQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_MUTI);
+		// 获取多选题总数
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_MUTI));
+		int mutiQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getMutiQuestionNum() > mutiQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "多选题数量超过题库总数，请修改");
 			return ret;
 		}
-		// 获取判断题
-		int chargeQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_CHARGE);
+		// 获取判断题总数
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_CHARGE));
+		int chargeQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getChargeQuestionNum() > chargeQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "判断题数量超过题库总数，请修改");
@@ -217,22 +222,27 @@ public class ExamController {
 			return ret;
 		}
 		// 算试题总数和总分，此时去查询所填写的题型数量是够满足
-		// 获取单选题
-		int singleQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_SINGLE);
+		// 获取单选题总数
+		Map<String, Long> queryMap = new HashMap<String, Long>();
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_SINGLE));
+		queryMap.put("subjectId", exam.getSubjectId());
+		int singleQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getSingleQuestionNum() > singleQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "单选题数量超过题库总数，请修改");
 			return ret;
 		}
-		// 获取多选题
-		int mutiQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_MUTI);
+		// 获取多选题总数
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_MUTI));
+		int mutiQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getMutiQuestionNum() > mutiQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "多选题数量超过题库总数，请修改");
 			return ret;
 		}
-		// 获取判断题
-		int chargeQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_CHARGE);
+		// 获取判断题总数
+		queryMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_CHARGE));
+		int chargeQuestionTotalNum = questionService.getQuestionNumByType(queryMap);
 		if (exam.getChargeQuestionNum() > chargeQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("msg", "判断题数量超过题库总数，请修改");

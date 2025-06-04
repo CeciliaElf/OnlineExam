@@ -18,6 +18,6 @@ public interface QuestionService {
 	public int delete(Long id);
 	public Integer getTotal(Map<String, Object> queryMap);  // 总量
 	public Question findByTitle(String title);
-	public int getQuestionNumByType(int questionType); // 根据试题类型获取试题数量
+	public int getQuestionNumByType(Map<String, Long> queryMap); // 根据试题类型和科目获取试题数量
 	public Question findById(Long id);
 }

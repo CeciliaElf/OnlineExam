@@ -85,21 +85,26 @@ public class HomeExamController {
 		// 此时说明符合考试条件，随机生成试卷试题
 		// 做判断，看是否满足生成试卷的条件
 		// 获取单选题
-		int singleQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_SINGLE);
+		Map<String, Long> qMap = new HashMap<String, Long>();
+		qMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_SINGLE));
+		qMap.put("subjectId", exam.getSubjectId());
+		int singleQuestionTotalNum = questionService.getQuestionNumByType(qMap);
 		if (exam.getSingleQuestionNum() > singleQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("message", "单选题数量超过题库总数，无法生成试卷");
 			return ret;
 		}
 		// 获取多选题
-		int mutiQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_MUTI);
+		qMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_MUTI));
+		int mutiQuestionTotalNum = questionService.getQuestionNumByType(qMap);
 		if (exam.getMutiQuestionNum() > mutiQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("message", "多选题数量超过题库总数，无法生成试卷");
 			return ret;
 		}
 		// 获取判断题
-		int chargeQuestionTotalNum = questionService.getQuestionNumByType(Question.QUESTION_TYPE_CHARGE);
+		qMap.put("questionType", Long.valueOf(Question.QUESTION_TYPE_CHARGE));
+		int chargeQuestionTotalNum = questionService.getQuestionNumByType(qMap);
 		if (exam.getChargeQuestionNum() > chargeQuestionTotalNum) {
 			ret.put("type", "error");
 			ret.put("message", "判断题数量超过题库总数，无法生成试卷");
@@ -121,6 +126,7 @@ public class HomeExamController {
 		// 试卷已经正式生成，现在开始随机生成试题
 		Map<String, Object> queryQuestionMap = new HashMap<String, Object>();
 		queryQuestionMap.put("questionType", Question.QUESTION_TYPE_SINGLE);
+		queryQuestionMap.put("subjectId", exam.getSubjectId());
 		queryQuestionMap.put("offset", 0);
 		queryQuestionMap.put("pageSize", 99999);
 		if (exam.getSingleQuestionNum() > 0) {

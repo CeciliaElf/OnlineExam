@@ -22,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.cecilia.programmer.entity.admin.Question;
 import com.cecilia.programmer.page.admin.Page;
 import com.cecilia.programmer.service.admin.QuestionService;
+import com.cecilia.programmer.service.admin.SubjectService;
 
 /**
  * 试题管理后台控制器
@@ -32,6 +33,8 @@ import com.cecilia.programmer.service.admin.QuestionService;
 public class QuestionController {
 	@Autowired
 	private QuestionService questionService;
+	@Autowired
+	private SubjectService subjectService;
 	/**
 	 * 试题列表页面
 	 * @param model
@@ -39,6 +42,10 @@ public class QuestionController {
 	 */
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public ModelAndView List(ModelAndView model) {
+		Map<String, Object> queryMap = new HashMap<String, Object>();
+		queryMap.put("offset", 0);
+		queryMap.put("page", 99999);
+		model.addObject("subjectList", subjectService.findList(queryMap));
 		model.setViewName("question/list");
 		return model;
 	}
@@ -54,6 +61,7 @@ public class QuestionController {
 	public Map<String, Object> List(
 			@RequestParam(name = "title", defaultValue = "") String title, 
 			@RequestParam(name = "questionType", required = false) Integer questionType,
+			@RequestParam(name = "subjectId", required = false) Long subjectId,
 			Page page) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 		// HashMap (ret) 来存放最终要返回给前端的数据。
@@ -62,6 +70,9 @@ public class QuestionController {
 		queryMap.put("title", title);
 		if (questionType != null) {
 			queryMap.put("questionType", questionType);
+		}
+		if (subjectId != null) {
+			queryMap.put("subjectId", subjectId);
 		}
 		queryMap.put("offset", page.getOffset());
 		queryMap.put("pageSize", page.getRows());
@@ -204,11 +215,16 @@ public class QuestionController {
 	 */
 	@RequestMapping(value = "/upload_file", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String, String> upload_file(MultipartFile excelFile) {
+	public Map<String, String> upload_file(MultipartFile excelFile, Long subjectId) {
 		Map<String, String> ret = new HashMap<String, String>();
 		if (excelFile == null) {
 			ret.put("type", "error");
 			ret.put("msg", "请选择文件");
+			return ret;
+		}
+		if (subjectId == null) {
+			ret.put("type", "error");
+			ret.put("msg", "请选择所属科目");
 			return ret;
 		}
 		if (excelFile.getSize() > 5000000) {
@@ -225,7 +241,7 @@ public class QuestionController {
 		}
 		String message = "导入成功";
 		try {
-			message = readExcel(excelFile.getInputStream());
+			message = readExcel(excelFile.getInputStream(), subjectId);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -243,7 +259,7 @@ public class QuestionController {
 	 * @param fileInputStream
 	 * @return
 	 */
-	private String readExcel(InputStream fileInputStream) {
+	private String readExcel(InputStream fileInputStream, Long subjectId) {
 		String message = "";
 		try {
 			// 把一个表格对象根据流的形式传递到 HSSFWorkbook 中
@@ -270,7 +286,7 @@ public class QuestionController {
 					message += "第" + rowIndex + "行，分值为空，跳过导入<br/>";
 					continue;
 				}
-				numericCellValue = row.getCell(0).getNumericCellValue();
+				numericCellValue = row.getCell(2).getNumericCellValue();
 				question.setScore(numericCellValue.intValue());
 				if(row.getCell(3) == null) {
 					message += "第" + rowIndex + "行，选项A为空，跳过导入<br/>";
@@ -290,6 +306,7 @@ public class QuestionController {
 				}
 				question.setAnswer(row.getCell(7).getStringCellValue());
 				question.setCreateTime(new Date());
+				question.setSubjectId(subjectId);
 				if (questionService.add(question) <= 0) {
 					message += "第" + rowIndex + "行，插入数据库失败\n";
 				}

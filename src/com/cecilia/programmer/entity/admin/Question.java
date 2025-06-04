@@ -21,6 +21,7 @@ public class Question {
 	public static int QUESTION_TYPE_CHARGE_SCORE = 2; // 判断题 2 分
 	
 	private Long id;  // 试题 id
+	private Long subjectId; // 学科专业类型
 	private int questionType; // 试题类型
 	private String title;  // 题目
 	private int score;    // 分值
@@ -91,7 +92,12 @@ public class Question {
 	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
-	
+	public Long getSubjectId() {
+		return subjectId;
+	}
+	public void setSubjectId(Long subjectId) {
+		this.subjectId = subjectId;
+	}
 	/**
 	 * 根据试题类型设定分值
 	 */
