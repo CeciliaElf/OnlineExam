@@ -54,4 +54,4 @@
 
 系统采用经典的三层MVC架构，各层职责分明，易于维护和扩展。
 
-![架构图](D:\WorkBox\eclipse2025workspace\OnlineExam\架构图.png)
+![架构图](https://github.com/CeciliaElf/OnlineExam/blob/68cdf34512929f92e88300e714fdb5ae479cc811/%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
