@@ -1,7 +1,9 @@
 package com.cecilia.programmer.controller.home;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,7 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.cecilia.programmer.entity.admin.Exam;
+import com.cecilia.programmer.entity.admin.ExamPaper;
+import com.cecilia.programmer.entity.admin.ExamPaperAnswer;
+import com.cecilia.programmer.entity.admin.Question;
 import com.cecilia.programmer.entity.admin.Student;
+import com.cecilia.programmer.service.admin.ExamPaperAnswerService;
 import com.cecilia.programmer.service.admin.ExamPaperService;
 import com.cecilia.programmer.service.admin.ExamService;
 import com.cecilia.programmer.service.admin.StudentService;
@@ -36,6 +43,8 @@ public class HomeStudentController {
 	private ExamService examService;
 	@Autowired
 	private ExamPaperService examPaperService;
+	@Autowired
+	private ExamPaperAnswerService examPaperAnswerService;
 	private int pageSize = 10;
 	
 	/**
@@ -252,6 +261,78 @@ public class HomeStudentController {
 		return model;
 	}
 	
+	/**
+	 * 
+	 * @param model
+	 * @param examId
+	 * @param examPaperId
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/review_exam", method = RequestMethod.GET)
+	public ModelAndView index(ModelAndView model, Long examId, Long examPaperId, HttpServletRequest request) {
+		Student student = (Student)request.getSession().getAttribute("student");
+		Exam exam = examService.findById(examId);
+		Map<String, Object> queryMap = new HashMap<String, Object>();
+		if (exam == null) {
+			model.setViewName("/home/exam/error");
+			model.addObject("message", "当前考试不存在");
+			return model;
+		}
+		queryMap.put("examId", examId);
+		queryMap.put("studentId", student.getId());
+		// 根据考试信息和学生信息获取试卷
+		ExamPaper examPaper = examPaperService.find(queryMap);
+		if (examPaper == null) {
+			model.setViewName("/home/exam/error");
+			model.addObject("message", "当前考试不存在试卷");
+			return model;
+		}
+		if (examPaper.getStatus() == 0) {
+			model.setViewName("/home/exam/error");
+			model.addObject("message", "你还没有考过这门考试");
+			return model;
+		}
+		queryMap.put("examPaperId", examPaper.getId());
+		List<ExamPaperAnswer> findListByUser = examPaperAnswerService.findListByUser(queryMap);
+		model.addObject("title", exam.getName() + "回顾试卷");
+		model.addObject("singleQuestionList", getExamPaperAnswerList(findListByUser, Question.QUESTION_TYPE_SINGLE));
+		model.addObject("mutiQuestionList", getExamPaperAnswerList(findListByUser, Question.QUESTION_TYPE_MUTI));
+		model.addObject("chargeQuestionList", getExamPaperAnswerList(findListByUser, Question.QUESTION_TYPE_CHARGE));
+		model.addObject("exam", exam);
+		model.addObject("examPaper", examPaper);
+		model.addObject("singleScore", Question.QUESTION_TYPE_SINGLE_SCORE);
+		model.addObject("mutiScore", Question.QUESTION_TYPE_MUTI_SCORE);
+		model.addObject("chargeScore", Question.QUESTION_TYPE_CHARGE_SCORE);
+		model.addObject("singleQuestion", Question.QUESTION_TYPE_SINGLE);
+		model.addObject("mutiQuestion", Question.QUESTION_TYPE_MUTI);
+		model.addObject("chargeQuestion", Question.QUESTION_TYPE_CHARGE);
+		model.setViewName("home/user/review_exam");
+		return model;
+	}
+	
+	/**
+	 * 返回指定类型的试题
+	 * @param examPaperAnswers
+	 * @param questionType
+	 * @return
+	 */
+	private List<ExamPaperAnswer> getExamPaperAnswerList(List<ExamPaperAnswer> examPaperAnswers, int questionType) {
+		List<ExamPaperAnswer> newExamAnswers = new ArrayList<ExamPaperAnswer>();
+		 for (ExamPaperAnswer examPaperAnswer: examPaperAnswers) {
+			 if (examPaperAnswer.getQuestion().getQuestionType() == questionType) {
+				 newExamAnswers.add(examPaperAnswer);
+			 }
+		 }
+		 return newExamAnswers;
+	}
+	
+	/**
+	 * 计算数据库查询数据游标
+	 * @param page
+	 * @param pageSize
+	 * @return
+	 */
 	private int getOffset(int page, int pageSize) {
 		if (page < 1) {
 			page = 1;

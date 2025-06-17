@@ -63,7 +63,7 @@
 							</td>
 							<td>${ history.exam.passScore }/${ history.exam.totalScore }</td>
 							<td>
-								<a href="">回顾试卷</a>
+								<a class="tm_btn tm_btn_primary" style="text-decoration: none; color: white;" target="_blank" href="review_exam?examId=${ history.exam.id }&examPaperId=${ histroy.id }">回顾试卷</a>
 							</td>
 						</tr>
 					</c:forEach>

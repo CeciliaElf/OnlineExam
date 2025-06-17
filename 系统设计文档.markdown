@@ -1,0 +1,321 @@
+# 在线考试系统 - 系统设计文档
+
+## 1. 引言
+
+本系统设计文档旨在详细描述在线考试系统的内部设计，包括数据库结构和核心功能模块的实现逻辑。本文档在《功能设计与架构图》的基础上，为开发团队提供更具体的技术实现指导。
+
+## 2. 数据库设计
+
+系统数据库遵循第三范式（3NF），旨在消除数据冗余，保证数据一致性。核心业务表包括学生表、考试表、试题表、试卷表、答题详情表等。
+
+### 2.1. E-R 图（使用mermaid语法生成）
+
+```mermaid
+erDiagram
+    ADMIN ||--o{ ROLE : "has"
+    ROLE ||--|{ AUTHORITY : "grants"
+    
+    SUBJECT ||--o{ STUDENT : "belongs to"
+    SUBJECT ||--o{ QUESTION : "belongs to"
+    SUBJECT ||--o{ EXAM : "belongs to"
+
+    EXAM o|--|| EXAM_PAPER : "generates"
+    STUDENT o|--|| EXAM_PAPER : "takes"
+    
+    EXAM_PAPER ||--|{ EXAM_PAPER_ANSWER : "contains"
+    QUESTION ||--o{ EXAM_PAPER_ANSWER : "is answered in"
+
+    ADMIN {
+        long id PK "用户ID"
+        varchar name "用户名"
+        varchar password "密码"
+        long roleId "角色ID"
+    }
+
+    ROLE {
+        long id PK "角色ID"
+        varchar name "角色名"
+    }
+
+    AUTHORITY {
+        long id PK "权限ID"
+        long roleId "角色ID"
+        long menuId "菜单ID"
+    }
+
+    STUDENT {
+        long id PK "学生ID"
+        varchar name "登录名"
+        varchar password "密码"
+        varchar trueName "真实姓名"
+        varchar tel "电话"
+        long subjectId "所属学科ID"
+    }
+
+    SUBJECT {
+        long id PK "学科ID"
+        varchar name "学科名称"
+        varchar remark "备注"
+    }
+
+    QUESTION {
+        long id PK "试题ID"
+        int type "类型 (0:单选, 1:多选, 2:判断)"
+        varchar title "题干"
+        varchar answer "答案"
+        int score "分值"
+        long subjectId "所属学科ID"
+    }
+
+    EXAM {
+        long id PK "考试ID"
+        varchar name "考试名称"
+        datetime startTime "开始时间"
+        datetime endTime "结束时间"
+        int availableTime "考试时长(分钟)"
+        int totalScore "总分"
+        long subjectId "所属学科ID"
+    }
+
+    EXAM_PAPER {
+        long id PK "试卷ID"
+        long examId "考试ID"
+        long studentId "学生ID"
+        int status "状态 (0:未考, 1:已考)"
+        int score "得分"
+        int useTime "用时(分钟)"
+    }
+
+    EXAM_PAPER_ANSWER {
+        long id PK "答题记录ID"
+        long examPaperId "试卷ID"
+        long questionId "试题ID"
+        varchar answer "学生答案"
+    }
+
+```
+
+### 2.2. 表结构详情
+
+#### 1. 学生表 (student)
+*描述：存储学生（考生）的基本信息。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 学生唯一标识 |
+| `name` | varchar(32) | NOT NULL, UNIQUE | 登录名 |
+| `password` | varchar(32) | NOT NULL | 登录密码（建议加密存储） |
+| `trueName` | varchar(32) | NOT NULL | 真实姓名 |
+| `tel` | varchar(16) | NULL | 手机号码 |
+| `subjectId` | bigint | FK | 所属学科ID，关联 `subject` 表 |
+| `createTime` | datetime | NOT NULL | 注册时间 |
+
+#### 2. 学科表 (subject)
+*描述：存储考试的学科分类。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 学科唯一标识 |
+| `name` | varchar(64) | NOT NULL | 学科名称 |
+| `remark` | varchar(255)| NULL | 备注信息 |
+
+#### 3. 试题表 (question)
+*描述：试题库，存储所有试题。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 试题唯一标识 |
+| `subjectId` | bigint | FK, NOT NULL | 所属学科ID，关联 `subject` 表 |
+| `questionType`| int | NOT NULL | 题目类型 (0:单选, 1:多选, 2:判断) |
+| `title` | text | NOT NULL | 题干内容 |
+| `score` | int | NOT NULL | 题目分值 |
+| `attrA` | varchar(255)| NULL | 选项A |
+| `attrB` | varchar(255)| NULL | 选项B |
+| `attrC` | varchar(255)| NULL | 选项C |
+| `attrD` | varchar(255)| NULL | 选项D |
+| `answer` | varchar(8) | NOT NULL | 正确答案 (例如: "A", "A,B", "T") |
+| `createTime` | datetime | NOT NULL | 添加时间 |
+
+#### 4. 考试表 (exam)
+*描述：定义一场考试的详细信息。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 考试唯一标识 |
+| `name` | varchar(128)| NOT NULL | 考试名称 |
+| `subjectId` | bigint | FK, NOT NULL | 所属学科ID，关联 `subject` 表 |
+| `startTime` | datetime | NOT NULL | 考试开始时间 |
+| `endTime` | datetime | NOT NULL | 考试结束时间 |
+| `availableTime`| int | NOT NULL | 考试时长（分钟） |
+| `questionNum` | int | NOT NULL | 题目总数 |
+| `totalScore` | int | NOT NULL | 试卷总分 |
+| `passScore` | int | NOT NULL | 及格分数 |
+| `singleQuestionNum`| int | DEFAULT 0 | 单选题数量 |
+| `mutiQuestionNum`| int | DEFAULT 0 | 多选题数量 |
+| `chargeQuestionNum`| int | DEFAULT 0 | 判断题数量 |
+| `createTime` | datetime | NOT NULL | 创建时间 |
+
+#### 5. 试卷表 (exam_paper)
+*描述：记录学生与特定考试关联的试卷信息。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 试卷唯一标识 |
+| `examId` | bigint | FK, NOT NULL | 所属考试ID，关联 `exam` 表 |
+| `studentId` | bigint | FK, NOT NULL | 所属学生ID，关联 `student` 表 |
+| `status` | int | NOT NULL, DEFAULT 0 | 试卷状态 (0:未考, 1:已考) |
+| `totalScore` | int | NOT NULL | 试卷总分 |
+| `score` | int | NULL | 学生得分 |
+| `startExamTime`| datetime | NULL | 开始考试时间 |
+| `endExamTime` | datetime | NULL | 交卷时间 |
+| `useTime` | int | NULL | 考试用时（分钟） |
+| `createTime` | datetime | NOT NULL | 试卷创建时间 |
+
+#### 6. 试卷答题表 (exam_paper_answer)
+*描述：存储学生在试卷中对每一道题的具体答案。*
+| 字段名 | 数据类型 | 约束 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `id` | bigint | PK, NOT NULL, AUTO_INCREMENT | 答题记录唯一标识 |
+| `examPaperId` | bigint | FK, NOT NULL | 所属试卷ID，关联 `exam_paper` 表 |
+| `questionId` | bigint | FK, NOT NULL | 题目ID，关联 `question` 表 |
+| `answer` | varchar(8) | NULL | 学生填写的答案 |
+
+#### 7. 其他后台管理表
+- `user` (管理员表), `role` (角色表), `authority` (权限表), `menu` (菜单表), `log` (日志表) 等用于支撑后台管理系统。
+
+## 3. 核心功能模块设计
+
+### 3.1. 组卷模块
+
+- **目标**: 为一场指定的考试，从题库中抽取题目，为每个符合条件的学生生成一份具体的、独一无二的试卷。本系统采用的是学生首次进入考试时动态生成试卷的策略。
+- **触发**: 学生在前台点击"开始考试"，后端检查若试卷不存在，则触发组卷流程。
+- **输入参数**: `examId` (考试ID), `student` (Session中的学生对象)。
+- **核心流程**:
+    1.  **前置检查**: 校验考试时间、学生学科是否匹配、是否已考过等。
+    2.  **题库数量检查**: 检查题库中各类题型的数量是否满足本次考试的抽题需求。
+    3.  **创建试卷**: 在 `exam_paper` 表中为该学生插入一条记录，状态为"未提交"。
+    4.  **随机抽题**: 从 `question` 表中随机获取指定数量的各类试题。
+    5.  **写入答题表**: 将抽出的题目ID写入 `exam_paper_answer` 表，此时学生答案为空，为后续答题做准备。
+
+- **代码片段 (`HomeExamController.java`中`start_exam`方法)**:
+  ```java
+  // ... 前置检查代码 ...
+
+  // 所有条件都满足，开始创建试卷，随机生成试题
+  ExamPaper examPaper = new ExamPaper();
+  examPaper.setCreateTime(new Date());
+  examPaper.setExamId(examId);
+  examPaper.setStatus(0); // 状态0：未提交
+  examPaper.setStudentId(student.getId());
+  examPaper.setTotalScore(exam.getTotalScore());
+  examPaperService.add(examPaper); // 插入试卷记录，获取examPaper.id
+
+  // 试卷已经正式生成，现在开始随机生成试题
+  Map<String, Object> queryQuestionMap = new HashMap<>();
+  queryQuestionMap.put("subjectId", exam.getSubjectId());
+  // ... 设置分页极大，获取该科目的所有题目 ...
+
+  if (exam.getSingleQuestionNum() > 0) {
+      queryQuestionMap.put("questionType", Question.QUESTION_TYPE_SINGLE);
+      List<Question> singleQuestionList = questionService.findList(queryQuestionMap);
+      // 从列表中随机选取指定数量的题目
+      List<Question> selectedSingleList = getRandomList(singleQuestionList, exam.getSingleQuestionNum());
+      // 将选中的题目插入到答题表中
+      insertQuestionAnswer(selectedSingleList, examId, examPaper.getId(), student.getId());
+  }
+  // ... 对多选题、判断题重复类似操作 ...
+
+  exam.setPaperNum(exam.getPaperNum() + 1); // 更新考试的已生成试卷数
+  examService.updateExam(exam);
+  ```
+
+### 3.2. 考试模块（答案暂存）
+
+- **目标**: 在学生答题过程中，实时、异步地保存每一道题的答案，防止因意外情况（如断网、浏览器关闭）导致答题进度丢失。
+- **触发**: 学生在考试页面选择或修改一个选项。
+- **核心流程**:
+    1.  **前端监听**: 前端JS监听每个题目选项的 `change` 或 `click` 事件。
+    2.  **AJAX请求**: 事件触发后，通过AJAX将 `examPaperAnswerId` (答题记录ID) 和学生选择的 `answer` 发送到后端。
+    3.  **后端处理**: 后端接收到请求后，直接更新 `exam_paper_answer` 表中对应ID的记录的 `answer` 字段。
+
+- **代码片段 (`HomeExamController.java`中`submit_answer`方法)**:
+  ```java
+  @RequestMapping(value = "/submit_answer", method = RequestMethod.POST)
+  @ResponseBody
+  public Map<String, String> submitAnswer(ExamPaperAnswer examPaperAnswer, HttpServletRequest request) {
+      Map<String, String> ret = new HashMap<String, String>();
+      if (examPaperAnswer == null) {
+          ret.put("type", "error");
+          ret.put("message", "请正确操作");
+          return ret;
+      }
+      // 从Session中获取考试开始时间，判断是否超时
+      Date startExamTime = (Date) request.getSession().getAttribute("startExamTime");
+      Exam exam = examService.findById(examPaperAnswer.getExamId());
+      int passedTime = (int) (new Date().getTime() - startExamTime.getTime()) / 1000 / 60;
+      if (passedTime >= exam.getAvailableTime()) {
+          ret.put("type", "error");
+          ret.put("message", "考试时间已过，不能再提交答案");
+          return ret;
+      }
+      
+      // 更新数据库中的答案
+      examPaperAnswerService.add(examPaperAnswer);
+
+      ret.put("type", "success");
+      ret.put("message", "答案提交成功");
+      return ret;
+  }
+  ```
+
+### 3.3. 自动阅卷模块
+
+- **目标**: 在学生交卷后，快速、准确地计算出客观题得分，并更新试卷状态和最终成绩。
+- **触发**: 学生点击"交卷"按钮，或考试时间耗尽，由系统自动调用。
+- **输入参数**: `examId`, `examPaperId`。
+- **核心流程**:
+    1.  **获取学生答案**: 根据 `examPaperId` 从 `exam_paper_answer` 表中查询出学生的所有答题记录。
+    2.  **获取正确答案**: 根据题目ID从 `question` 表中查询所有对应题目的正确答案和分值。
+    3.  **循环比对**: 遍历学生的每一条答案，与标准答案进行比对。
+    4.  **分数累加**: 如果答案一致，将该题的分值累加到总分中。
+    5.  **更新试卷**: 将计算出的最终总分、考试用时等信息更新到 `exam_paper` 表中，并将 `status` 设为 1 (已考)。
+
+- **代码片段 (`HomeExamController.java`中`submit_exam`方法)**:
+  ```java
+  @RequestMapping(value = "/submit_exam", method = RequestMethod.POST)
+  @ResponseBody
+  public Map<String, String> submitExam(Long examId, Long examPaperId, HttpServletRequest request) {
+      Map<String, String> ret = new HashMap<String, String>();
+      Exam exam = examService.findById(examId);
+      // ... 检查考试状态 ...
+
+      // 计算成绩
+      Map<String, Object> queryMap = new HashMap<String, Object>();
+      queryMap.put("examPaperId", examPaperId);
+      List<ExamPaperAnswer> examPaperAnswerList = examPaperAnswerService.findList(queryMap);
+      int score = 0;
+      for (ExamPaperAnswer examPaperAnswer : examPaperAnswerList) {
+          if (examPaperAnswer.getIsCorrect() == 1) { // isCorrect在保存答案时已判断
+              Question question = questionService.findById(examPaperAnswer.getQuestionId());
+              // 此处设计可以在保存答案时就比对，也可以在提交时统一比对
+              // 假设在提交时比对
+              if (question.getAnswer().equals(examPaperAnswer.getAnswer())) {
+                  score += question.getScore(); // 分数累加
+              }
+          }
+      }
+
+      // 更新试卷信息
+      ExamPaper examPaper = examPaperService.findById(examPaperId);
+      examPaper.setScore(score);
+      examPaper.setStatus(1); // 状态1：已提交
+      Date startExamTime = (Date) request.getSession().getAttribute("startExamTime");
+      examPaper.setStartExamTime(startExamTime);
+      examPaper.setEndExamTime(new Date());
+      int useTime = (int) (examPaper.getEndExamTime().getTime() - startExamTime.getTime()) / 1000 / 60;
+      examPaper.setUseTime(useTime);
+      examPaperService.submitPaper(examPaper);
+
+      // 更新考试的已考人数、及格人数等统计信息
+      // ...
+      
+      ret.put("type", "success");
+      ret.put("message", "试卷提交成功");
+      return ret;
+  }
+  ``` 
