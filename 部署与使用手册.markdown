@@ -1,0 +1,147 @@
+# 在线考试系统 - 部署与使用手册
+
+## 1. 部署手册
+
+本手册旨在指导技术人员如何在服务器上部署在线考试系统。
+
+### 1.1. 环境要求
+
+在部署之前，请确保服务器已安装并配置好以下软件：
+
+| 软件 | 推荐版本 | 备注 |
+| :--- | :--- | :--- |
+| 操作系统 | Windows Server / Linux (CentOS, Ubuntu) | 无特殊要求，64位系统 |
+| JDK | 1.8 | 必须，并配置好 `JAVA_HOME` 环境变量 |
+| Maven | 3.5+ | 用于项目构建，需配置好环境变量 |
+| Web服务器 | Tomcat | 8.5+ | 需配置好 `CATALINA_HOME` 环境变量 |
+| 数据库 | MySQL 或 MariaDB | 5.7+ | 推荐使用MySQL |
+
+### 1.2. 部署步骤
+
+#### 步骤一：数据库初始化
+1.  **创建数据库**: 登录到您的MySQL/MariaDB数据库，创建一个新的数据库。推荐使用 `utf8mb4` 字符集以获得最佳兼容性。
+    ```sql
+    CREATE DATABASE online_exam DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    ```
+2.  **导入数据**: 将项目 `WebContent/sql/subject.sql` 文件中的数据导入到刚刚创建的 `online_exam` 数据库中。这会创建所有必要的表并插入初始的科目数据。您可以使用命令行或数据库管理工具（如Navicat, DataGrip）来执行此操作。
+    ```bash
+    # 在数据库服务器上执行
+    mysql -u [用户名] -p online_exam < /path/to/subject.sql
+    ```
+
+#### 步骤二：修改项目配置
+1.  **解压项目**: 将项目源码解压到您的工作区。
+2.  **修改数据库连接**: 打开 `src/config/db.properties` 文件，根据您自己的数据库环境，修改以下四个参数：
+    ```properties
+    jdbc.driver=com.mysql.jdbc.Driver
+    jdbc.url=jdbc:mysql://127.0.0.1:3306/online_exam?useUnicode=true&characterEncoding=utf8
+    jdbc.username=your_username
+    jdbc.password=your_password
+    ```
+    请将 `your_username` 和 `your_password` 替换为您自己的数据库用户名和密码。如果数据库不在本地或端口不是3306，也请一并修改 `jdbc.url`。
+
+#### 步骤三：编译和打包
+1.  **打开命令行**: 在项目的根目录 (`OnlineExam/`) 下打开一个终端或命令行窗口。
+2.  **执行Maven打包**: 运行以下Maven命令来编译和打包项目。
+    ```bash
+    mvn clean package
+    ```
+    此命令会下载所有依赖，编译Java代码，并将整个Web应用打包成一个 `.war` 文件。打包成功后，您可以在 `target/` 目录下找到一个名为 `OnlineExam.war` 的文件。
+
+#### 步骤四：部署到Tomcat
+1.  **启动Tomcat**: 确保您的Tomcat服务器正在运行。
+2.  **部署应用**: 将 `target/OnlineExam.war` 文件复制到Tomcat安装目录下的 `webapps/` 文件夹中。
+3.  **自动解压**: Tomcat会自动检测到新的 `.war` 文件，并将其解压到 `webapps/` 目录下同名的文件夹中。稍等片刻，应用即部署完成。
+
+### 1.3. 访问系统
+- **后台管理系统**: 打开浏览器，访问 `http://<服务器IP>:<Tomcat端口>/OnlineExam/system/login`。
+    - 默认管理员账号：`admin`
+    - 默认密码：`admin`
+- **前台学生系统**: 打开浏览器，访问 `http://<服务器IP>:<Tomcat端口>/OnlineExam/home/login`。
+
+## 2. 使用手册
+
+### 2.1. 管理员端使用手册
+
+#### 1. 登录
+访问后台地址，输入正确的账号和密码登录。
+
+![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/00.png)
+
+#### 2. 主界面
+登录后进入主界面，左侧是功能菜单栏，顶部是当前用户信息，中间是主要内容显示区。
+
+![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/01.png)
+
+#### 3. 核心功能操作
+- **学生管理**:
+    - 在菜单栏点击"学生管理" -> "学生列表"。
+    - 您可以查看所有学生信息，进行搜索、添加、修改和删除操作。
+    
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/03.png)
+
+- **科目管理**:
+
+    - 在菜单栏点击"考试管理" -> "科目列表"。
+    - 管理考试所属的科目，如"计算机科学"、"软件工程"等。
+
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/04.png)
+
+- **试题管理**:
+    - 在菜单栏点击"试题管理" -> "试题列表"。
+    - 这是系统的核心题库。您可以按科目、题型筛选试题，并进行增、删、改、查操作。添加试题时请注意选择正确的题型和科目。
+
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/02.png)
+
+- **考试管理**:
+
+    - 在菜单栏点击"考试管理" -> "考试列表"。
+    - 在这里您可以发布一场新的考试。需要设置考试名称、所属科目、考试时间、及格线以及需要包含的各题型数量。
+
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/05.png)
+
+### 2.2. 学生端使用手册
+
+#### 1. 注册与登录
+访问前台地址，没有账号的学生需要先进行注册，填写基本信息。已有账号的学生可以直接登录。
+
+![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/06.png)
+
+#### 2. 主界面
+登录后，学生可以看到"我的考试"和"历史成绩"两个主要功能。
+
+![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/07.png)
+
+#### 3. 核心功能操作
+- **参加考试**:
+    - 点击"我的考试"，可以看到所有当前可以参加的考试列表。
+    - 确认考试信息后，点击"开始考试"按钮。请注意，一旦开始，系统会立刻开始计时。
+    - 在答题界面，仔细阅读题目并选择答案。系统会自动保存您的每一个答案。
+    - 完成所有题目后，点击"交卷"按钮。如果时间用尽，系统会自动交卷。
+    
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/08.png)
+    
+- **查看历史成绩**:
+    
+    - 点击"历史成绩"。
+    - 这里列出了您所有参加过的考试的得分和详情。
+    
+    ![Image text](https://github.com/CeciliaElf/OnlineExam/ScreenShots/09.png)
+
+## 3. 小组贡献
+
+本项目由三人团队合作完成，各位成员在项目中都做出了重要贡献。
+
+```mermaid
+pie
+    title 小组成员贡献比例
+    "张雨晨 (组长)" : 65
+    "丁鑫" : 17.5
+    "刘祖睿" : 17.5
+```
+
+| 成员 | 职位 | 贡献详情 | 贡献占比 |
+| :--- | :--- | :--- | :--- |
+| **张雨晨** | 组长 | 负责项目的整体架构设计、核心功能的全栈开发、数据库设计以及相关技术文档（功能设计、系统设计、部署手册等）的主要编写工作。 | 65% |
+| **丁鑫** | 组员 | 参与了部分后端接口的开发，协助完成了数据库的数据初始化工作，并负责收集和整理部分测试用例。 | 17.5% |
+| **刘祖睿** | 组员 | 参与了部分前端页面的开发与调试，协助进行了系统的测试工作，并对UI细节提出了改进建议。 | 17.5% |
