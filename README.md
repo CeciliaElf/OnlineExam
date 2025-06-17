@@ -1,6 +1,6 @@
 # Online Exam - 在线考试系统
 
-[![Java Version](https.svg?alt=java&color=blue)](https://img.shields.io/badge/Java-1.8-blue) [![Spring](https://img.shields.io/badge/Spring-4.3.7-brightgreen)](https://spring.io/) [![MySQL](https://img.shields.io/badge/MySQL-5.7-orange)](https://www.mysql.com/)
+[![Java Version](https://img.shields.io/badge/Java-1.8-blue.svg)](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html) [![Spring](https://img.shields.io/badge/Spring-4.3.7-brightgreen)](https://spring.io/) [![MySQL](https://img.shields.io/badge/MySQL-5.7-orange)](https://www.mysql.com/)
 
 一个基于 SSM (Spring, Spring MVC, MyBatis) 框架开发的现代化在线考试系统。系统分为功能强大的后台管理端和简洁易用的前台学生端。
 
